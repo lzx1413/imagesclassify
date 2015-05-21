@@ -20,7 +20,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 	}
 	gray.convertTo(gray, CV_64F);
 
-	/* 尺度设置*/
+
 	double dSigmaStart = 1.5;
 	double dSigmaStep = 1.2;
 	int iSigmaNb = 13;
@@ -38,7 +38,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 		double iSigmaD = 0.7 * iSigmaI;
 
 		int iKernelSize = 6 * round(iSigmaD) + 1;
-		/*微分算子*/
+
 		Mat dx(1, iKernelSize, CV_64F);
 		for (int k = 0; k < iKernelSize; k++)
 		{
@@ -49,7 +49,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 
 		Mat dy = dx.t();
 		Mat Ix, Iy;
-		/*图像微分*/
+
 		filter2D(gray, Ix, CV_64F, dx);
 		filter2D(gray, Iy, CV_64F, dy);
 
@@ -64,7 +64,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 		filter2D(Iy2, Iy2, CV_64F, gaussKernel);
 		filter2D(Ixy, Ixy, CV_64F, gaussKernel);
 
-		/*自相关矩阵*/
+
 		double alpha = 0.06;
 		Mat detM = Ix2.mul(Iy2) - Ixy.mul(Ixy);
 		Mat trace = Ix2 + Iy2;
@@ -88,7 +88,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 		harrisArray[i] = cornerMap.clone();
 	}
 
-	/*计算尺度归一化Laplace算子*/
+
 	vector<Mat> laplaceSnlo(iSigmaNb);
 	for (int i = 0; i < iSigmaNb; i++)
 	{
@@ -99,7 +99,7 @@ vector<Point2f> feature::DectectHarrisLaplace(const Mat& imgSrc)
 		laplaceSnlo[i] *= (iSigmaL * iSigmaL);
 	}
 
-	/*检测每个特征点在某一尺度LOG相应是否达到最大*/
+
 	Mat corners(gray.size(), CV_8U, Scalar(0));
 	for (int i = 0; i < iSigmaNb; i++)
 	{
@@ -143,7 +143,7 @@ Mat feature::getHOGKernel(Size& ksize, double sigma)
 {
 	Mat kernel(ksize, CV_64F);
 	Point centPoint = Point((ksize.width - 1) / 2, ((ksize.height - 1) / 2));
-	// first calculate Gaussian
+
 	for (int i = 0; i < kernel.rows; i++)
 	{
 		double* pData = kernel.ptr<double>(i);
@@ -172,7 +172,7 @@ Mat feature::getHOGKernel(Size& ksize, double sigma)
 	{
 		kernel = kernel / sumKernel;
 	}
-	// now calculate Laplacian
+
 	for (int i = 0; i < kernel.rows; i++)
 	{
 		double* pData = kernel.ptr<double>(i);
@@ -182,7 +182,7 @@ Mat feature::getHOGKernel(Size& ksize, double sigma)
 			pData[j] *= addition;
 		}
 	}
-	// make the filter sum to zero
+
 	sumKernel = sum(kernel)[0];
 	kernel -= (sumKernel / (ksize.width  * ksize.height));
 
