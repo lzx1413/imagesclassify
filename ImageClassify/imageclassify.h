@@ -25,6 +25,7 @@ private:
 	std::vector<int>label_for_test;
 	std::vector<cv::Mat>image_for_test;
 	CLog *mylog = LogManager::OpenLog("D:/log.txt");
+	cv::Mat mergeRows(cv::Mat A, cv::Mat B);
 
 };
 
