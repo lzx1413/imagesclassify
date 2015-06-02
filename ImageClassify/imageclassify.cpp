@@ -92,31 +92,42 @@ void ImageClassify::GetImageFromFile()
 
 
 }
+Mat ImageClassify::mergeRows(Mat A, Mat B)
+{
+	//CV_ASSERT(A.cols == B.cols&&A.type() == B.type());
+	int totalRows = A.rows + B.rows;
 
+	Mat mergedDescriptors(totalRows, A.cols, A.type());
+	Mat submat = mergedDescriptors.rowRange(0, A.rows);
+	A.copyTo(submat);
+	submat = mergedDescriptors.rowRange(A.rows, totalRows);
+	B.copyTo(submat);
+	return mergedDescriptors;
+}
 void ImageClassify::ImageClassifyProcess()
 {
 	std::thread t1,t2;
 	Mat train_image_features, test_image_features;
 	TickMeter time;
-	/*time.start();
-	
-	vector<int>train_labels = feature::GetImageFeatures(image_for_train,train_image_features);
-	Mat train_labels_(train_labels, true);
-	time.stop();
-	FileStorage fs(".\\train_feature.xml", FileStorage::WRITE);
-	fs << "train_feature" << train_image_features;
-	fs << "train_labels" << train_labels_;
-	qDebug() << "train image features got" << time.getTimeSec()<<endl;
-	time.reset();
 	time.start();
-	vector<int>test_labels = feature::GetImageFeatures(image_for_test,test_image_features);
-	Mat test_labels_(test_labels, true);
-	fs << "test_feature" << test_image_features;
-	fs << "test_labels" << test_labels_;
-	fs.release();
-	time.stop();
-	qDebug() << "test image features got" <<time.getTimeSec()<< endl;
-	time.reset();*/
+	
+ //   vector<int>train_labels = feature::GetImageFeatures(image_for_train,train_image_features);
+	//Mat train_labels_(train_labels, true);
+	//time.stop();
+	//FileStorage fs(".\\train_feature.xml", FileStorage::WRITE);
+	//fs << "train_feature" << train_image_features;
+	//fs << "train_labels" << train_labels_;
+	//qDebug() << "train image features got" << time.getTimeSec()<<endl;
+	//time.reset();
+	//time.start();
+	//vector<int>test_labels = feature::GetImageFeatures(image_for_test,test_image_features);
+	//Mat test_labels_(test_labels, true);
+	//fs << "test_feature" << test_image_features;
+	//fs << "test_labels" << test_labels_;
+	//fs.release();
+	//time.stop();
+	//qDebug() << "test image features got" <<time.getTimeSec()<< endl;
+	//time.reset();
 	time.start();
 	FileStorage fs1(".\\train_feature.xml", FileStorage::READ);
 	Mat train_labels1, test_labels1;
@@ -127,17 +138,25 @@ void ImageClassify::ImageClassifyProcess()
 	vector<int> train_labels2, test_labels2;
 	train_labels2.assign((int*)train_labels1.datastart, (int*)train_labels1.dataend);
 	test_labels2.assign((int*)test_labels1.datastart, (int*)test_labels1.dataend);
+	test_labels2.insert(test_labels2.end(), train_labels2.begin(), train_labels2.end());
+	//vector<int> labels2(train_labels2.size() + test_labels2.size());
+	//merge(train_labels2.begin(),train_labels2.end(),test_labels2.begin(),test_labels2.end(),labels2.begin());
+	Mat image_features = mergeRows(train_image_features, test_image_features);
 	fs1.release();
-	Mat vector_for_train = feature::GetVocabularyFrequency(train_image_features, 300, train_labels2);
+	Mat vector_for_image = feature::GetVocabularyFrequency(image_features, 300, test_labels2);
+	Mat vector_for_train = vector_for_image.rowRange(0, 285);
 	time.stop();
 	qDebug()<< "train image vector got" <<time.getTimeSec()<< endl;
 	time.reset();
 	time.start();
-	Mat vector_for_test = feature::GetVocabularyFrequency(test_image_features, 300, test_labels2);
+	Mat vector_for_test = vector_for_image.rowRange(285, vector_for_image.rows);
 	time.stop();
 	qDebug() << "test image vector got" <<time.getTimeSec()<< endl;
 	time.reset();
 	time.start();
+	FileStorage fs6(".\\train_feature2.xml", FileStorage::WRITE);
+	fs6 << "train_feature" << vector_for_train;
+	fs6 << "test_feature" << vector_for_test;
 	svm::TrainAndPredict(vector_for_train, vector_for_test);
 	time.stop();
 	qDebug() << "finish svm" << time.getTimeSec()<< endl;

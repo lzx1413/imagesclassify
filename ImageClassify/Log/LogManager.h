@@ -1,5 +1,4 @@
 
-
 #ifndef _LOGMANAGER_INCLUDE_H_
 #define _LOGMANAGER_INCLUDE_H_
 
